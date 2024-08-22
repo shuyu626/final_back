@@ -6,6 +6,7 @@ import { StatusCodes } from 'http-status-codes'
 import jwt from 'jsonwebtoken'
 // import validator from 'validator'
 import bcrypt from 'bcrypt'
+import Landmark from '../models/landmark.js'
 // 註冊
 export const create = async (req, res) => {
   try {
@@ -465,6 +466,64 @@ export const getUserFind = async (req, res) => {
           $or: [ // 符合以下任一条件即可
             { name: regex }, // 名称字段中匹配正则表达式的文档
             { category: regex } // 分类字段中匹配正则表达式的文档
+          ]
+        }
+      ]
+    })
+
+    // 回傳結果
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: '',
+      result: {
+        data,
+        total
+      }
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: '未知錯誤'
+    })
+  }
+}
+
+// 使用者活動貼文
+export const getLandmark = async (req, res) => {
+  try {
+    console.log(req.user.id)
+    const sortBy = req.query.sortBy || 'createdAt' // 默認排序依據為 'createdAt'
+    const sortOrder = req.query.sortOrder || 'desc' // 默認排序方式為 'desc'
+    const regex = new RegExp(req.query.search || '', 'i') // 不區分大小寫
+
+    // 查詢資料
+    const data = await Landmark
+      .find({ // 查詢條件
+        $and: [ // 所有条件都需要满足
+          { user: req.user.id }, // 只查詢該用戶的文章
+          {
+            $or: [
+              { name: regex },
+              { tel: regex },
+              { category: regex },
+              { description: regex }
+            ]
+          }
+        ]
+      })
+      .sort({ [sortBy]: sortOrder }) // 排序
+
+    // 獲取資料總數
+    const total = await Landmark.countDocuments({
+      $and: [ // 所有条件都需要满足
+        { user: req.user.id }, // 只查詢該用戶的文章
+        {
+          $or: [
+            { name: regex },
+            { tel: regex },
+            { category: regex },
+            { description: regex }
           ]
         }
       ]

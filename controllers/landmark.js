@@ -1,6 +1,7 @@
 import Landmark from '../models/landmark.js'
 import User from '../models/user.js'
 import { StatusCodes } from 'http-status-codes'
+import validator from 'validator'
 
 // create 函式負責處理 POST 請求以創建新產品。它將從 req.file.path 中取得圖片，並將其存入 req.body.image 中，
 // 將請求中的產品資料和上傳的圖片路徑儲存到數據庫中的 Landmark 模型中
@@ -44,10 +45,6 @@ export const getAll = async (req, res) => {
     // 前面沒有的話就用 || 後面的預設值
     const sortBy = req.query.sortBy || 'createdAt' // 排序依據，預設為 createdAt
     const sortOrder = req.query.sortOrder || 'desc' // 排序方式，預設為降冪
-    const itemsPerPage = req.query.itemsPerPage * 1 || 12 // 每頁顯示的項目數量，預設為 8(*1 文字轉數字)
-    const page = req.query.page * 1 || 1 // 目前頁碼，預設為第 1 頁
-    // 找文字要處理，不然只會找完全符合的
-    // 建立正則表達式做模糊的查詢，''空的，i不分大小寫
     const regex = new RegExp(req.query.search || '', 'i') // 搜尋關鍵字，不區分大小寫
     const data = await Landmark
       .find({ // find放查詢條件
@@ -59,14 +56,7 @@ export const getAll = async (req, res) => {
         ]
       })
       .sort({ [sortBy]: sortOrder }) // .sort({ 欄位:排序 })，[sortBy]當作key使用
-      // 如果一頁有 10 筆
-      // 第一頁 = 1 ~ 10 = 跳過 0 筆 = (第 1 頁 - 1) * 10 = 0
-      // 第二頁 = 11 ~ 20 = 跳過 10 筆 = (第 2 頁 - 1) * 10 = 10
-      // 第三頁 = 21 ~ 30 = 跳過 20 筆 = (第 3 頁 - 1) * 10 = 20
-      .skip((page - 1) * itemsPerPage) // mongoDB 的分頁用 skip 跟 limit 去做，skip是要跳過幾筆資料，limit是要回傳幾筆
-      .limit(itemsPerPage)
-    // console.log(data)
-    // mongoose 的 .estimatedDocumentCount() 計算資料總數
+
     const total = await Landmark.estimatedDocumentCount() // 取得產品總數
     res.status(StatusCodes.OK).json({
       success: true,
@@ -81,5 +71,43 @@ export const getAll = async (req, res) => {
       success: false,
       message: '未知錯誤'
     })
+  }
+}
+
+export const deleteId = async (req, res) => {
+  try {
+    console.log(req.body)
+    // 使用 validator.isMongoId 來驗證請求參數中的商品 ID 是否符合  ObjectId 格式。如果不符合，會拋出一個 ID 錯誤
+    if (!validator.isMongoId(req.params.id)) throw new Error('ID')
+    await Landmark.findByIdAndDelete(req.params.id, req.body).orFail(new Error('NOT FOUND'))
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: ''
+    })
+  } catch (error) {
+    if (error.name === 'CastError' || error.message === 'ID') {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: '地標 ID 格式錯誤'
+      })
+    } else if (error.message === 'NOT FOUND') {
+      res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: '查無地標'
+      })
+    } else if (error.name === 'ValidationError') {
+      const key = Object.keys(error.errors)[0]
+      const message = error.errors[key].message
+      res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message
+      })
+    } else {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: '未知錯誤'
+      })
+    }
   }
 }

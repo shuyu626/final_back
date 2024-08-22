@@ -14,7 +14,7 @@ router.get('/', getAll)
 router.get('/all', getAll)
 
 router.get('/:id', getId)
-// 更新指定id的商品 > 經過jwt認證 > 判斷是不是管理員 > 編輯可能會換圖片所以要upload > 編輯
+
 router.patch('/:id', auth.jwt, upload, edit)
 // 刪除活動貼文
 router.delete('/:id', auth.jwt, deleteId)

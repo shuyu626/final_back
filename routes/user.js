@@ -1,5 +1,5 @@
 import { Router } from 'express'// 從 express 模組中導入 Router 物件
-import { create, login, extend, profile, logout, getAll, edit, addmark, getmark, deletemark, getEvent, getUserShare, getUserFind } from '../controllers/user.js'
+import { create, login, extend, profile, logout, getAll, edit, addmark, getmark, deletemark, getEvent, getUserShare, getUserFind, getLandmark } from '../controllers/user.js'
 import upload from '../middlewares/upload.js'
 import * as auth from '../middlewares/auth.js'
 const router = Router() // 建立一個新的 Router 實例
@@ -18,6 +18,8 @@ router.get('/find', auth.jwt, getUserFind)
 router.get('/share', auth.jwt, getUserShare)
 // 取得活動貼文
 router.get('/event', auth.jwt, getEvent)
+// 取得地標
+router.get('/landmark', auth.jwt, getLandmark)
 // 新增活動收藏
 router.post('/toggleFavorite', auth.jwt, addmark)
 // 取得活動收藏
