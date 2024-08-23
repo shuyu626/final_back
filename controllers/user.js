@@ -489,7 +489,7 @@ export const getUserFind = async (req, res) => {
   }
 }
 
-// 使用者活動貼文
+// 使用者地標
 export const getLandmark = async (req, res) => {
   try {
     console.log(req.user.id)
