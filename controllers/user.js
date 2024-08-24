@@ -247,13 +247,18 @@ export const addmark = async (req, res) => {
   try {
     const userId = req.user._id
     const { eventId } = req.body
-    const user = await User.findById(userId).populate('eventmark')
+    // 找指定 ID 的用戶，並通過 populate 方法加載用戶的 eventmark 欄位
+    // const user = await User.findById(userId).populate('eventmark')
+    const user = await User.findById(userId)
+    // 檢查 user.eventmark 中是否已經包含了要添加的 eventId
     if (user.eventmark.some(event => event._id.toString() === eventId)) {
       // 取消收藏
       user.eventmark = user.eventmark.filter(event => event._id.toString() !== eventId)
     } else {
       // 添加收藏
+      console.log(user)
       user.eventmark.push(eventId)
+      // user.push(eventId)
     }
 
     await user.save()

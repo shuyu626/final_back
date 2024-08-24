@@ -11,6 +11,9 @@ const schema = new Schema({
   tel: {
     type: String
   },
+  cl: {
+    type: String
+  },
   lat: {
     type: Number
   },

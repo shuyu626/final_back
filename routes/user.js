@@ -20,6 +20,7 @@ router.get('/share', auth.jwt, getUserShare)
 router.get('/event', auth.jwt, getEvent)
 // 取得地標
 router.get('/landmark', auth.jwt, getLandmark)
+
 // 新增活動收藏
 router.post('/toggleFavorite', auth.jwt, addmark)
 // 取得活動收藏
