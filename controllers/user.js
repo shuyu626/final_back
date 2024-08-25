@@ -245,12 +245,15 @@ export const edit = async (req, res) => {
 // 收藏活動
 export const addmark = async (req, res) => {
   try {
+    console.log(req.body)
     const userId = req.user._id
+    console.log(userId)
     const { eventId } = req.body
     // 找指定 ID 的用戶，並通過 populate 方法加載用戶的 eventmark 欄位
     // const user = await User.findById(userId).populate('eventmark')
     const user = await User.findById(userId)
     // 檢查 user.eventmark 中是否已經包含了要添加的 eventId
+    // 有查到該id會回傳true代表收藏過
     if (user.eventmark.some(event => event._id.toString() === eventId)) {
       // 取消收藏
       user.eventmark = user.eventmark.filter(event => event._id.toString() !== eventId)
