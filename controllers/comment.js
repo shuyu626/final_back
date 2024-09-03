@@ -91,3 +91,85 @@ export const getComments = async (req, res) => {
     }
   }
 }
+
+export const edit = async (req, res) => {
+  try {
+    console.log(req.body)
+    // 使用 validator.isMongoId 來驗證請求參數中的商品 ID 是否符合  ObjectId 格式。如果不符合，會拋出一個 ID 錯誤
+    if (!validator.isMongoId(req.params.id)) throw new Error('ID')
+    // 使用 Product.findByIdAndUpdate 根據 ID 更新商品信息
+    // runValidators: true 確保更新時會執行模型中的驗證規則
+    // orFail(new Error('NOT FOUND')) 如果找不到匹配的商品，會拋出一個 NOT FOUND 錯誤
+    await Comment.findByIdAndUpdate(req.params.id, req.body, { runValidators: true }).orFail(new Error('NOT FOUND'))
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: ''
+    })
+  } catch (error) {
+    if (error.name === 'CastError' || error.message === 'ID') {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: '商品 ID 格式錯誤'
+      })
+    } else if (error.message === 'NOT FOUND') {
+      res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: '查無商品'
+      })
+    } else if (error.name === 'ValidationError') {
+      const key = Object.keys(error.errors)[0]
+      const message = error.errors[key].message
+      res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message
+      })
+    } else {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: '未知錯誤'
+      })
+    }
+  }
+}
+
+// 刪除貼文
+export const deleteId = async (req, res) => {
+  try {
+    console.log(req.body)
+    // 使用 validator.isMongoId 來驗證請求參數中的商品 ID 是否符合  ObjectId 格式。如果不符合，會拋出一個 ID 錯誤
+    if (!validator.isMongoId(req.params.id)) throw new Error('ID')
+    // runValidators: true 確保更新時會執行模型中的驗證規則
+    // orFail(new Error('NOT FOUND')) 如果找不到匹配的商品，會拋出一個 NOT FOUND 錯誤
+    await Comment.findByIdAndDelete(req.params.id, req.body).orFail(new Error('NOT FOUND'))
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: ''
+    })
+  } catch (error) {
+    if (error.name === 'CastError' || error.message === 'ID') {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: '商品 ID 格式錯誤'
+      })
+    } else if (error.message === 'NOT FOUND') {
+      res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: '查無商品'
+      })
+    } else if (error.name === 'ValidationError') {
+      const key = Object.keys(error.errors)[0]
+      const message = error.errors[key].message
+      res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message
+      })
+    } else {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: '未知錯誤'
+      })
+    }
+  }
+}
