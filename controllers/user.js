@@ -108,7 +108,8 @@ export const profile = (req, res) => {
         username: req.user.username,
         role: req.user.role,
         email: req.user.email,
-        avatar: req.user.avatar
+        avatar: req.user.avatar,
+        id: req.user.id
       }
     })
   } catch (error) {
@@ -200,7 +201,7 @@ export const edit = async (req, res) => {
     if (req.file) {
       updatedData.avatar = req.file.path // 大頭貼
     }
-    console.log(updatedData)
+    // console.log(updatedData)
     const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
       new: true,
       runValidators: true
@@ -245,9 +246,9 @@ export const edit = async (req, res) => {
 // 收藏活動
 export const addmark = async (req, res) => {
   try {
-    console.log(req.body)
+    // console.log(req.body)
     const userId = req.user._id
-    console.log(userId)
+    // console.log(userId)
     const { eventId } = req.body
     // 找指定 ID 的用戶，並通過 populate 方法加載用戶的 eventmark 欄位
     // const user = await User.findById(userId).populate('eventmark')
@@ -259,7 +260,7 @@ export const addmark = async (req, res) => {
       user.eventmark = user.eventmark.filter(event => event._id.toString() !== eventId)
     } else {
       // 添加收藏
-      console.log(user)
+      // console.log(user)
       user.eventmark.push(eventId)
       // user.push(eventId)
     }
@@ -310,7 +311,7 @@ export const getEvent = async (req, res) => {
   try {
     // 確保用戶已經登錄，並從請求中取得用戶 ID
     // 用戶 ID，應由身份驗證中間件提供
-    console.log(req.user.id)
+    // console.log(req.user.id)
     // 取得排序依據、排序方式、每頁顯示數量、當前頁碼，若無則設定預設值
     const sortBy = req.query.sortBy || 'createdAt' // 默認排序依據為 'createdAt'
     const sortOrder = req.query.sortOrder || 'desc' // 默認排序方式為 'desc'
@@ -373,7 +374,9 @@ export const getUserShare = async (req, res) => {
   try {
     // 確保用戶已經登錄，並從請求中取得用戶 ID
     // 用戶 ID，應由身份驗證中間件提供
-    console.log(req.user.id)
+
+    // console.log(req.user.id)
+
     // 取得排序依據、排序方式、每頁顯示數量、當前頁碼，若無則設定預設值
     const sortBy = req.query.sortBy || 'createdAt' // 默認排序依據為 'createdAt'
     const sortOrder = req.query.sortOrder || 'desc' // 默認排序方式為 'desc'
@@ -437,7 +440,9 @@ export const getUserFind = async (req, res) => {
   try {
     // 確保用戶已經登錄，並從請求中取得用戶 ID
     // 用戶 ID，應由身份驗證中間件提供
-    console.log(req.user.id)
+
+    // console.log(req.user.id)
+
     // 取得排序依據、排序方式、每頁顯示數量、當前頁碼，若無則設定預設值
     const sortBy = req.query.sortBy || 'createdAt' // 默認排序依據為 'createdAt'
     const sortOrder = req.query.sortOrder || 'desc' // 默認排序方式為 'desc'
@@ -500,7 +505,7 @@ export const getUserFind = async (req, res) => {
 // 使用者地標
 export const getLandmark = async (req, res) => {
   try {
-    console.log(req.user.id)
+    // console.log(req.user.id)
     const sortBy = req.query.sortBy || 'createdAt' // 默認排序依據為 'createdAt'
     const sortOrder = req.query.sortOrder || 'desc' // 默認排序方式為 'desc'
     const regex = new RegExp(req.query.search || '', 'i') // 不區分大小寫

@@ -185,7 +185,7 @@ export const getAll = async (req, res) => {
 // 根據提供的 ID 查找 MongoDB 中的商品並返回結果
 export const getId = async (req, res) => {
   try {
-    console.log(req.body)
+    // console.log(req.body)
     // 驗證 ID 是否符合 MongoDB ObjectId 的格式
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
 
@@ -261,7 +261,7 @@ export const edit = async (req, res) => {
 // 刪除貼文
 export const deleteId = async (req, res) => {
   try {
-    console.log(req.body)
+    // console.log(req.body)
     // 使用 validator.isMongoId 來驗證請求參數中的商品 ID 是否符合  ObjectId 格式。如果不符合，會拋出一個 ID 錯誤
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
     // orFail(new Error('NOT FOUND')) 如果找不到匹配的商品，會拋出一個 NOT FOUND 錯誤
@@ -302,7 +302,7 @@ export const deleteId = async (req, res) => {
 export const donate = async (req, res) => {
   try {
     const { donator, quantity, phone, id } = req.body
-    console.log(id)
+    // console.log(id)
     // 查找物資
     const material = await Material.findById(id)
     if (!material) {
