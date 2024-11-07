@@ -1,10 +1,8 @@
 import User from '../models/user.js'
 import Event from '../models/event.js'
 import Material from '../models/material.js'
-// import Event from '../models/event.js'
 import { StatusCodes } from 'http-status-codes'
 import jwt from 'jsonwebtoken'
-// import validator from 'validator'
 import bcrypt from 'bcrypt'
 import Landmark from '../models/landmark.js'
 // 註冊
@@ -49,8 +47,6 @@ export const login = async (req, res) => {
     const token = jwt.sign({ _id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7 days' })
     // 將生成的 token 加入使用者的 tokens 屬性中
     req.user.tokens.push(token)
-    // console.log(req.user.role) // 可以console來看資料是否進來
-    // console.log(token)
     // 將使用者物件保存到資料庫中，包括更新後的 tokens 屬性
     await req.user.save()
     // 返回成功的 HTTP 狀態碼和包含使用者資訊的 JSON 回應
@@ -157,10 +153,6 @@ export const getAll = async (req, res) => {
         ]
       })
       .sort({ [sortBy]: sortOrder }) // .sort({ 欄位:排序 })，[sortBy]當作key使用
-    // 如果一頁有 10 筆
-    // 第一頁 = 1 ~ 10 = 跳過 0 筆 = (第 1 頁 - 1) * 10 = 0
-    // 第二頁 = 11 ~ 20 = 跳過 10 筆 = (第 2 頁 - 1) * 10 = 10
-    // 第三頁 = 21 ~ 30 = 跳過 20 筆 = (第 3 頁 - 1) * 10 = 20
       .skip((page - 1) * itemsPerPage) // mongoDB 的分頁用 skip 跟 limit 去做，skip是要跳過幾筆資料，limit是要回傳幾筆
       .limit(itemsPerPage)
     // mongoose 的 .estimatedDocumentCount() 計算資料總數
@@ -185,8 +177,6 @@ export const getAll = async (req, res) => {
 // 修改基本資料、新增大頭貼
 export const edit = async (req, res) => {
   try {
-    // console.log(req.body)
-    // console.log(req.file)
     const userId = req.user._id
     const updatedData = {}
 
@@ -197,16 +187,13 @@ export const edit = async (req, res) => {
     if (req.body.password) {
       updatedData.password = await bcrypt.hash(req.body.password, 10)
     }
-    // console.log(req.body)
     if (req.file) {
       updatedData.avatar = req.file.path // 大頭貼
     }
-    // console.log(updatedData)
     const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
       new: true,
       runValidators: true
     })
-    console.log(updatedUser)
     if (!updatedUser) {
       throw new Error('NOT FOUND')
     }
@@ -246,12 +233,9 @@ export const edit = async (req, res) => {
 // 收藏活動
 export const addmark = async (req, res) => {
   try {
-    // console.log(req.body)
     const userId = req.user._id
-    // console.log(userId)
     const { eventId } = req.body
     // 找指定 ID 的用戶，並通過 populate 方法加載用戶的 eventmark 欄位
-    // const user = await User.findById(userId).populate('eventmark')
     const user = await User.findById(userId)
     // 檢查 user.eventmark 中是否已經包含了要添加的 eventId
     // 有查到該id會回傳true代表收藏過
@@ -260,9 +244,7 @@ export const addmark = async (req, res) => {
       user.eventmark = user.eventmark.filter(event => event._id.toString() !== eventId)
     } else {
       // 添加收藏
-      // console.log(user)
       user.eventmark.push(eventId)
-      // user.push(eventId)
     }
 
     await user.save()
@@ -311,7 +293,6 @@ export const getEvent = async (req, res) => {
   try {
     // 確保用戶已經登錄，並從請求中取得用戶 ID
     // 用戶 ID，應由身份驗證中間件提供
-    // console.log(req.user.id)
     // 取得排序依據、排序方式、每頁顯示數量、當前頁碼，若無則設定預設值
     const sortBy = req.query.sortBy || 'createdAt' // 默認排序依據為 'createdAt'
     const sortOrder = req.query.sortOrder || 'desc' // 默認排序方式為 'desc'
@@ -374,16 +355,11 @@ export const getUserShare = async (req, res) => {
   try {
     // 確保用戶已經登錄，並從請求中取得用戶 ID
     // 用戶 ID，應由身份驗證中間件提供
-
-    // console.log(req.user.id)
-
-    // 取得排序依據、排序方式、每頁顯示數量、當前頁碼，若無則設定預設值
     const sortBy = req.query.sortBy || 'createdAt' // 默認排序依據為 'createdAt'
     const sortOrder = req.query.sortOrder || 'desc' // 默認排序方式為 'desc'
     const itemsPerPage = parseInt(req.query.itemsPerPage, 10) || 12 // 每頁顯示的項目數量，轉為數字，預設為 12
     const page = parseInt(req.query.page, 10) || 1 // 當前頁碼，轉為數字，預設為 1
 
-    // 處理搜尋關鍵字，建立正則表達式以進行模糊查詢
     const regex = new RegExp(req.query.search || '', 'i') // 不區分大小寫
 
     // 查詢資料
@@ -391,11 +367,11 @@ export const getUserShare = async (req, res) => {
       .find({ // 查詢條件
         $and: [ // 所有条件都需要满足
           { user: req.user.id }, // 只查詢該用戶的文章
-          { type: 'share' }, // 类型字段必须为 'find'
+          { type: 'share' },
           {
-            $or: [ // 符合以下任一条件即可
-              { name: regex }, // 名称字段中匹配正则表达式的文档
-              { category: regex } // 分类字段中匹配正则表达式的文档
+            $or: [
+              { name: regex },
+              { category: regex }
             ]
           }
         ]
@@ -441,8 +417,6 @@ export const getUserFind = async (req, res) => {
     // 確保用戶已經登錄，並從請求中取得用戶 ID
     // 用戶 ID，應由身份驗證中間件提供
 
-    // console.log(req.user.id)
-
     // 取得排序依據、排序方式、每頁顯示數量、當前頁碼，若無則設定預設值
     const sortBy = req.query.sortBy || 'createdAt' // 默認排序依據為 'createdAt'
     const sortOrder = req.query.sortOrder || 'desc' // 默認排序方式為 'desc'
@@ -457,11 +431,11 @@ export const getUserFind = async (req, res) => {
       .find({ // 查詢條件
         $and: [ // 所有条件都需要满足
           { user: req.user.id }, // 只查詢該用戶的文章
-          { type: 'find' }, // 类型字段必须为 'find'
+          { type: 'find' },
           {
-            $or: [ // 符合以下任一条件即可
-              { name: regex }, // 名称字段中匹配正则表达式的文档
-              { category: regex } // 分类字段中匹配正则表达式的文档
+            $or: [
+              { name: regex },
+              { category: regex }
             ]
           }
         ]
@@ -473,12 +447,12 @@ export const getUserFind = async (req, res) => {
     // 獲取資料總數
     const total = await Material.countDocuments({
       $and: [ // 所有条件都需要满足
-        { user: req.user.id }, // 只查詢該用戶的文章
-        { type: 'find' }, // 类型字段必须为 'find'
+        { user: req.user.id },
+        { type: 'find' },
         {
-          $or: [ // 符合以下任一条件即可
-            { name: regex }, // 名称字段中匹配正则表达式的文档
-            { category: regex } // 分类字段中匹配正则表达式的文档
+          $or: [
+            { name: regex },
+            { category: regex }
           ]
         }
       ]
@@ -505,9 +479,10 @@ export const getUserFind = async (req, res) => {
 // 使用者地標
 export const getLandmark = async (req, res) => {
   try {
-    // console.log(req.user.id)
     const sortBy = req.query.sortBy || 'createdAt' // 默認排序依據為 'createdAt'
     const sortOrder = req.query.sortOrder || 'desc' // 默認排序方式為 'desc'
+    const itemsPerPage = parseInt(req.query.itemsPerPage, 10) || 12 // 每頁顯示的項目數量，轉為數字，預設為 12
+    const page = parseInt(req.query.page, 10) || 1
     const regex = new RegExp(req.query.search || '', 'i') // 不區分大小寫
 
     // 查詢資料
@@ -526,11 +501,12 @@ export const getLandmark = async (req, res) => {
         ]
       })
       .sort({ [sortBy]: sortOrder }) // 排序
-
+      .skip((page - 1) * itemsPerPage) // 分頁 - 跳過的數據量
+      .limit(itemsPerPage) // 分頁 - 限制每頁顯示的數據量
     // 獲取資料總數
     const total = await Landmark.countDocuments({
-      $and: [ // 所有条件都需要满足
-        { user: req.user.id }, // 只查詢該用戶的文章
+      $and: [
+        { user: req.user.id },
         {
           $or: [
             { name: regex },

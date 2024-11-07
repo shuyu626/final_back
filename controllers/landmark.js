@@ -7,9 +7,7 @@ import validator from 'validator'
 // 將請求中的產品資料和上傳的圖片路徑儲存到數據庫中的 Landmark 模型中
 export const create = async (req, res) => {
   try {
-    console.log(req.body)
     req.body.user = req.user._id
-    // console.log(req.body.user)
 
     if (req.body.lat == null || req.body.lng == null) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -82,7 +80,6 @@ export const getAll = async (req, res) => {
 
 export const deleteId = async (req, res) => {
   try {
-    console.log(req.body)
     // 使用 validator.isMongoId 來驗證請求參數中的商品 ID 是否符合  ObjectId 格式。如果不符合，會拋出一個 ID 錯誤
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
     await Landmark.findByIdAndDelete(req.params.id, req.body).orFail(new Error('NOT FOUND'))
@@ -121,7 +118,6 @@ export const deleteId = async (req, res) => {
 // 編輯地標
 export const edit = async (req, res) => {
   try {
-    console.log(req.body)
     // 使用 validator.isMongoId 來驗證請求參數中的商品 ID 是否符合  ObjectId 格式。如果不符合，會拋出一個 ID 錯誤
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
 

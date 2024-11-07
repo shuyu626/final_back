@@ -7,7 +7,6 @@ import validator from 'validator'
 // 將請求中的產品資料和上傳的圖片路徑儲存到數據庫中的 Event 模型中
 export const create = async (req, res) => {
   try {
-    console.log(req.body)
     // 將上傳的檔案路徑存入 req.body.image
     // req.file 是 multer 中間件在處理檔案上傳時的屬性，提供了上傳檔案的詳細信息
     // req.file.path：帶有該檔案被儲存的路徑資訊
@@ -56,7 +55,7 @@ export const getAll = async (req, res) => {
     // 先從 request 中取得所需的參數(query)或使用預設值
     // 前面沒有的話就用 || 後面的預設值
     const sortBy = req.query.sortBy || 'createdAt' // 排序依據，預設為 createdAt
-    const sortOrder = req.query.sortOrder || 'desc' // 排序方式，預設為降冪
+    const sortOrder = req.query.sortOrder || 'asc' // 排序方式，預設為降冪
     const itemsPerPage = req.query.itemsPerPage * 1 || 12 // 每頁顯示的項目數量，預設為 8(*1 文字轉數字)
     const page = req.query.page * 1 || 1 // 目前頁碼，預設為第 1 頁
     // 找文字要處理，不然只會找完全符合的
@@ -96,10 +95,8 @@ export const getAll = async (req, res) => {
 }
 
 // 編輯商品
-// 首先進行了一些基本驗證（如 ID 格式驗證），然後嘗試更新商品信息。如果更新過程中發生錯誤，會根據錯誤類型返回相應的 HTTP 狀態碼和錯誤訊息
 export const edit = async (req, res) => {
   try {
-    console.log(req.body)
     // 使用 validator.isMongoId 來驗證請求參數中的商品 ID 是否符合  ObjectId 格式。如果不符合，會拋出一個 ID 錯誤
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
     // 如果請求中有上傳的圖片，將其路徑保存到 req.body.image
@@ -107,6 +104,10 @@ export const edit = async (req, res) => {
     // 使用 Event.findByIdAndUpdate 根據 ID 更新商品信息
     // runValidators: true 確保更新時會執行模型中的驗證規則
     // orFail(new Error('NOT FOUND')) 如果找不到匹配的商品，會拋出一個 NOT FOUND 錯誤
+    if (typeof req.body.category === 'string') {
+      req.body.category = req.body.category.split(',')
+    }
+
     await Event.findByIdAndUpdate(req.params.id, req.body, { runValidators: true }).orFail(new Error('NOT FOUND'))
 
     res.status(StatusCodes.OK).json({
@@ -143,7 +144,6 @@ export const edit = async (req, res) => {
 // 根據提供的 ID 查找 MongoDB 中的商品並返回結果
 export const getId = async (req, res) => {
   try {
-    console.log(req.body)
     // 驗證 ID 是否符合 MongoDB ObjectId 的格式
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
 
@@ -178,7 +178,6 @@ export const getId = async (req, res) => {
 // 刪除貼文
 export const deleteId = async (req, res) => {
   try {
-    console.log(req.body)
     // 使用 validator.isMongoId 來驗證請求參數中的商品 ID 是否符合  ObjectId 格式。如果不符合，會拋出一個 ID 錯誤
     if (!validator.isMongoId(req.params.id)) throw new Error('ID')
     // runValidators: true 確保更新時會執行模型中的驗證規則
